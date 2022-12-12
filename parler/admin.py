@@ -596,17 +596,21 @@ class TranslatableAdmin(BaseTranslatableAdmin, admin.ModelAdmin):
             if issubclass(inline.model, TranslatableModelMixin):
                 # leverage inlineformset_factory() to find the ForeignKey.
                 # This also resolves the fk_name if it's set.
-                fk = inline.get_formset(request, obj).fk
+                # Added a try/except block - as this doesn't work for GenericForeignKeys
+                try:
+                    fk = inline.get_formset(request, obj).fk
 
-                rel_name = f"master__{fk.name}"
-                filters = {"language_code": language_code, rel_name: obj}
+                    rel_name = f"master__{fk.name}"
+                    filters = {"language_code": language_code, rel_name: obj}
 
-                for translations_model in inline.model._parler_meta.get_all_models():
-                    qs = translations_model.objects.filter(**filters)
-                    if obj is not None:
-                        qs = qs.using(obj._state.db)
+                    for translations_model in inline.model._parler_meta.get_all_models():
+                        qs = translations_model.objects.filter(**filters)
+                        if obj is not None:
+                            qs = qs.using(obj._state.db)
 
-                    yield inline, qs
+                        yield inline, qs
+                except:
+                    pass
 
     @cached_property
     def default_change_form_template(self):
