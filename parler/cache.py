@@ -40,12 +40,15 @@ def get_object_cache_keys(instance):
         return []
 
     keys = []
-    tr_models = instance._parler_meta.get_all_models()
+    try:
+        tr_models = instance._parler_meta.get_all_models()
 
-    # TODO: performs a query to fetch the language codes. Store that in memcached too.
-    for language in instance.get_available_languages():
-        for tr_model in tr_models:
-            keys.append(get_translation_cache_key(tr_model, instance.pk, language))
+        # TODO: performs a query to fetch the language codes. Store that in memcached too.
+        for language in instance.get_available_languages():
+            for tr_model in tr_models:
+                keys.append(get_translation_cache_key(tr_model, instance.pk, language))
+    except:
+        pass
 
     return keys
 
